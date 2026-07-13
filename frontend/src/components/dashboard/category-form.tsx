@@ -79,7 +79,7 @@ export function CategoryForm(){
                         type="submit"
                         className="w-full bg-brand-primary text-white hover:bg-brand-primary"
                     >
-                        Criar categoria teste
+                        Criar categoria
                     </Button>
                 </form>
 
