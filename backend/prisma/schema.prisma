@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  STAFF
+  ADMIN
+}
+
+model User {
+  //@default define a chave primária
+  id String @id @default(uuid())
+  name String
+  //@unique define valor como unico
+  //Não pode ter 2 pessoas com o mesmo valor
+  email String @unique
+  password String
+  //role é a regra, admin ou não
+  //O padrão é STAFF
+  role Role @default(STAFF)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //Faz um mapeamento para o nome da tabela
+  @@map("users")
+
+}
+
+model Category{
+  id String @id @default(uuid())
+  name String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //Relação com a tabela Product
+  product Product[]
+
+  //Faz um mapeamento para o nome da tabela
+  @@map("categories")
+}
+
+model Product{
+  id String @id @default(uuid())
+  name String
+  price Int //centavos
+  description String
+  //Url de uma imagem
+  banner String
+  //Para desabilitar um produto ao ivés de excluir ele do banco
+  disabled Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items Item[]
+
+  //Relação com a tabela Product
+  category_id String
+  //o ondelete deleta os items relacionados 
+  category Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
+
+  @@map("products")
+}
+
+model Order{
+  id String @id @default(uuid())
+  table Int
+  //Status do pedido false = preparando, true = pronto
+  status Boolean @default(false)
+  //A ordem é um rascunho ate ser concretizada
+  draft Boolean @default(true)
+  name String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items Item[]
+
+  @@map("orders")
+}
+
+model Item{
+  id String @id @default(uuid())
+  amount Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order_id String
+  oder Order @relation(fields: [order_id], references: [id], onDelete: Cascade)
+
+  product_id String
+  product Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@map("items")
+}

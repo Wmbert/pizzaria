@@ -1,0 +1,32 @@
+import prismaClient from "../../prisma";
+
+interface CreateCategoryProps{
+    name: string;
+}
+
+class CreateCategoryService{
+    async execute({name}: CreateCategoryProps){
+
+        try{
+            //Cria uma categoria no banco
+            const catgory = await prismaClient.category.create({
+                data:{
+                    name: name
+                },
+                select:{
+                    id: true,
+                    name: true,
+                    createdAt: true,
+                }
+            });
+            
+            return catgory;
+
+        }catch(error){
+            throw new Error("Falha ao criar categoria")
+        }
+
+    }
+}
+
+export { CreateCategoryService }
