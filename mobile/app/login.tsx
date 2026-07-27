@@ -5,13 +5,15 @@ import {
     KeyboardAvoidingView, 
     ScrollView,
     StyleSheet,
-    Platform
+    Alert
 } from "react-native";
 
 import { useState } from "react";
 
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
+
+import { useAuth } from "@/contexts/AuthContext";
 
 import { 
     colors, 
@@ -24,15 +26,31 @@ export default function Login(){
     const[password, setPassword] = useState("");
     const[loading, setLoading] = useState(false);
 
-    function handleLogin(){
-        alert("Fez login")
+    const { signIn } = useAuth();
+
+    async function handleLogin(){
+
+        if(!email.trim() || !password.trim()){
+            Alert.alert("Atenção", "Preencha todos os campos!");
+            return;
+        }
+        try{
+            setLoading(true);
+            await signIn(email, password);
+        }catch(error){
+            console.log(error);
+            Alert.alert("Error", "Erro ao fazer o login");
+        } finally{
+            setLoading(false);
+        }
+        
     }
 
     return(
         <KeyboardAvoidingView
             style={styles.container}
             //Da um padding de acordo com o sistema 
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            behavior={"padding"}
         >
             <ScrollView
                 contentContainerStyle={styles.scrollContent}
