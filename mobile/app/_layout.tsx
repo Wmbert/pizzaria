@@ -1,12 +1,17 @@
 //_layout.tsx
-
 import { Stack } from "expo-router";
-import { StatusBar } from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { colors } from "../constants/theme";
 
 export default function RootLayout(){
   return(
-    <Stack>
-      <Stack.Screen name="index"/>
-    </Stack>
+    <>
+      <StatusBar style="light" backgroundColor={colors.background}/>
+      <Stack screenOptions={{ headerShown: false }} initialRouteName="login">
+        <Stack.Screen name="index"/>
+        <Stack.Screen name="login"/>
+        <Stack.Screen name="(authenticated)"/>
+      </Stack>
+    </>
   )
 }
