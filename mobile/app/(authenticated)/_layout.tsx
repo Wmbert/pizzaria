@@ -2,7 +2,9 @@
 import { Stack } from "expo-router";
 
 export default function AuhtenticatedLayout(){
-    <Stack>
-        <Stack.Screen name="dashboard"/>
-    </Stack>
+    return(
+        <Stack>
+            <Stack.Screen name="dashboard"/>
+        </Stack>
+    )
 }
