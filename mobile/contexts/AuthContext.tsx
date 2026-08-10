@@ -37,6 +37,8 @@ export function AuthProvider({ children }: AuthProviderProps){
         async function loadData(){
             await loadStorageData();
         }
+
+        loadData();
     }, [])
 
     //Busca os detalhes salvos no storage
@@ -49,7 +51,7 @@ export function AuthProvider({ children }: AuthProviderProps){
 
             if(storedToken && storedUser){
                 setUser(JSON.parse(storedUser));
-                
+                setLoading(false);
             }
 
         }catch(error){
