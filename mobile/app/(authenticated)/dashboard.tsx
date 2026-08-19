@@ -8,17 +8,75 @@ import {
     KeyboardAvoidingView,
     ScrollView,
     Platform,
+    Alert,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useAuth } from "../../contexts/AuthContext";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
-import { colors, fontSize, spacing, borderRadius } from "@/constants/theme";
-import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context";
+import { 
+    colors,
+    fontSize, 
+    spacing, 
+    borderRadius 
+} from "@/constants/theme";
+
+import { 
+    SafeAreaView 
+} from "react-native-safe-area-context";
+
+import { Order } from "@/types/index";
+
+import api from "@/services/api";
+import { useRouter } from "expo-router"
 
 export default function Dashboard(){
+    const router = useRouter();
     const { signOut } = useAuth();
-    const insets = useSafeAreaInsets();
+
+    const[tableNumber, setTableNumber] = useState("");
+    const[loading,setLoading] = useState(false);
+
+    async function handleOpenTable(){
+        if(!tableNumber){
+            Alert.alert("Atenção", "Digite um número da mesa válido");
+            return;
+        }
+
+        //Converte o número da table para number
+        const table = parseInt(tableNumber);
+        
+        //Verifica se o número da mesa é um número
+        if(isNaN(table) || table <= 0){
+            Alert.alert("Atenção", "Digite um número da mesa válido");
+            return;           
+        }
+
+        try{
+            setLoading(true);
+
+            const response = await api.post<Order>("/order", {
+                table: table
+            })
+
+            //Envia parametros para a tela de order
+            router.push({
+                pathname: "/(authenticated)/order",
+                params: { 
+                    table: response.data.table.toString(), 
+                    order_id: response.data.id
+                },
+            });
+            
+            setTableNumber("");
+
+        }catch(error){
+            console.log(error);
+            Alert.alert("Erro", "Falha ao abrir mesa");
+        }finally{
+            setLoading(false);
+        }
+    }
 
     return(
         <View style={styles.container}>
@@ -49,10 +107,13 @@ export default function Dashboard(){
                             placeholder="Número da mesa"
                             style={styles.input}
                             placeholderTextColor={colors.gray}
+                            value={tableNumber}
+                            onChangeText={setTableNumber}
+                            keyboardType="numeric"
                         />
                         <Button
                             title="Abrir mesa"
-                            onPress={() => {}}
+                            onPress={handleOpenTable}
                         />
                     </View>
                 </ScrollView>

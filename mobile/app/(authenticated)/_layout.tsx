@@ -42,6 +42,10 @@ export default function AuhtenticatedLayout(){
                 name="dashboard" 
                 options={{headerShown: false}}
             />
+            <Stack.Screen 
+                name="order" 
+                options={{headerShown: false}}
+            />
         </Stack>
     )
 }
