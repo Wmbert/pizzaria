@@ -90,7 +90,10 @@ export default function Dashboard(){
                     keyboardShouldPersistTaps="handled"
                 >
                     <SafeAreaView style={styles.header}>
-                        <TouchableOpacity style={styles.signoutButton}>
+                        <TouchableOpacity 
+                            style={styles.signoutButton}
+                            onPress={signOut}
+                        >
                             <Text style={styles.signoutText}>Sair</Text>
                         </TouchableOpacity>
                     </SafeAreaView>

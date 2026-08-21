@@ -5,18 +5,23 @@ import {
     ActivityIndicator, 
     StyleSheet,
     Pressable,
-    ScrollView
+    ScrollView,
+    Alert
  } from "react-native";
 import { Ionicons } from "@expo/vector-icons"
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Category, Product } from "@/types/index";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { Category, Item, Product } from "@/types/index";
 import api from "@/services/api";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { Select } from "@/components/Select";
+import { QuantityControl } from "@/components/QuantityControl";
+import { Button } from "@/components/Button";
+import { OrderItem } from "@/components/OrderItem";
 
 export default function Order(){
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     //Pega os parametros que vem pela rota
     const { order_id, table} = useLocalSearchParams<{
         order_id: string;
@@ -28,8 +33,13 @@ export default function Order(){
     const[products, setProducts] = useState<Product[]>([]);
     const[selectedProduct, setSelectedProduct] = useState("");
 
+    const[quantity, setQuantity] = useState(1);
+
     const[loadingCategories, setLoadingCategories] = useState(true);
     const[loadingProducts, setLoadingProducts] = useState(false);
+    const[loadingAddItem, setLoadingAddItem] = useState(false);
+
+    const[items, setItem] = useState<Item[]>([]);
 
     useEffect(() => {
         async function loadDataCategories(){
@@ -78,12 +88,67 @@ export default function Order(){
         }
     }
 
+    async function handleAddItem(){
+        try{
+            setLoadingAddItem(true);
+
+            const response = await api.post<Item>("/order/add",{
+                order_id: order_id,
+                product_id: selectedProduct,
+                amount: quantity
+            })
+
+            setItem([...items, response.data]);
+            setSelectedCategory("");
+            setSelectedProduct("");
+            setQuantity(1);
+        }catch(error){
+            console.log(error);
+        }finally{
+            setLoadingAddItem(false);
+        }
+    }
+
+    async function handleRemoveItem(item_id: string){
+        try{
+
+            await api.delete("/order/remove",{
+                params:{
+                    item_id: item_id
+                }
+            })
+
+            const updatedItems = items.filter( item => item.id !== item_id);
+
+            setItem(updatedItems);
+
+            Alert.alert("Item removido", "Seu item foi removido da mesa");
+
+
+        }catch(error){
+            console.log(error);
+            Alert.alert("Atenção", "Erro ao remover item da mesa");
+        }
+    }
+
     if(loadingCategories){
         return(
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={colors.brand} />
             </View>
         )
+    }
+
+    function handleAdvance(){
+        if(items.length === 0) return;
+
+        router.push({
+            pathname: "/(authenticated)/finish",
+            params: {
+                order_id: order_id,
+                table: table
+            }
+        })
     }
 
     return(
@@ -104,7 +169,12 @@ export default function Order(){
                 </View>
             </SafeAreaView>
 
-            <ScrollView style={styles.scrollContent}>
+            <ScrollView 
+                style={styles.scrollContent}
+                contentContainerStyle={{
+                    paddingBottom: insets.bottom + 40
+                }}
+            >
                 <Select 
                     label="Categorias"
                     placeholder="Selecione a categoria"
@@ -130,6 +200,55 @@ export default function Order(){
                             onValueChange={setSelectedProduct}
                         />
                     )
+                )}
+
+                { selectedProduct && (
+                    <View style={styles.quantitySection}>
+                        <Text style={styles.quantityLabel}>Quantidade</Text>
+
+                        <QuantityControl 
+                            quantity={quantity}
+                            onIncrement={() => setQuantity(quantity => quantity + 1)}
+                            onDecrement={() => {
+                                if(quantity <= 1){
+                                    setQuantity(1);
+                                    return;
+                                }
+                                setQuantity(quantity => quantity - 1);
+                            }}
+                        />
+                    </View>
+                )}
+
+                {selectedProduct && (
+                    <Button
+                        title="Adicionar"
+                        onPress={handleAddItem}
+                        variant="secondary"
+                    />
+                )}
+
+                {items.length > 0 && (
+                    <View style={styles.itemsSection}>
+                        <Text style={styles.itemsTitle}>Itens adicionados</Text>
+
+                        {items.map( (item) => (
+                            <OrderItem
+                                item={item}
+                                key={item.id}
+                                onRemove={handleRemoveItem}
+                            />
+                        ))}
+                    </View>
+                )}
+
+                {items.length > 0 && (
+                    <View style={styles.footer}>
+                        <Button
+                            title="Avançar"
+                            onPress={handleAdvance}
+                        />
+                    </View>
                 )}
             </ScrollView>
         </View>
@@ -172,5 +291,28 @@ const styles = StyleSheet.create({
     scrollContent:{
         padding: spacing.lg,
         gap: 14,
+    },
+    quantitySection:{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingVertical: spacing.md
+    },
+    quantityLabel:{
+        color: colors.primary,
+        fontSize: fontSize.lg,
+        fontWeight: "bold",
+    },
+    itemsSection:{
+        marginTop: spacing.xl,
+        gap: spacing.md
+    },
+    itemsTitle:{
+        color: colors.primary,
+        fontWeight: "bold",
+        fontSize: fontSize.lg,
+    },
+    footer:{
+        paddingTop: 24,
     }
 })

@@ -24,10 +24,10 @@ interface SelectProps{
     placeholder?: string;
 }
 
-export function Select({
-    onValueChange,
-    options,
-    selectedValue,
+export function Select({ 
+    onValueChange, 
+    options, 
+    selectedValue, 
     label,
     placeholder = "Selecione..."
 }: SelectProps){

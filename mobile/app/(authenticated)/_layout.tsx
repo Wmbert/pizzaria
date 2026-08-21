@@ -46,6 +46,13 @@ export default function AuhtenticatedLayout(){
                 name="order" 
                 options={{headerShown: false}}
             />
+            <Stack.Screen 
+                name="finish" 
+                options={{
+                    headerShown: true,
+                    headerTitle: "Finalizar pedido"
+                }}
+            />
         </Stack>
     )
 }
